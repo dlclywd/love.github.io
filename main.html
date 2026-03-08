@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>予她温柔 · 妇女节特别献礼</title>
+    <style>
+        /* 全局基础样式 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "思源宋体", "Microsoft YaHei", "PingFang SC", sans-serif;
+        }
+
+        /* 唯美背景 - 动态花瓣+渐变 */
+        body {
+            background: linear-gradient(135deg, #fff5f7 0%, #ffe6ea 30%, #ffd6e0 100%);
+            background-image: 
+                url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 15c8.33 0 15-6.67 15-15S38.33 0 30 0 15 6.67 15 15s6.67 15 15 15zm40 40c8.33 0 15-6.67 15-15s-6.67-15-15-15-15 6.67-15 15 6.67 15 15 15zm-40 40c8.33 0 15-6.67 15-15s-6.67-15-15-15-15 6.67-15 15 6.67 15 15 15zm80-80c8.33 0 15-6.67 15-15s-6.67-15-15-15-15 6.67-15 15 6.67 15 15 15zm-80 20c8.33 0 15-6.67 15-15s-6.67-15-15-15-15 6.67-15 15 6.67 15 15 15zm0 40c8.33 0 15-6.67 15-15s-6.67-15-15-15-15 6.67-15 15 6.67 15 15 15z' fill='%23ff8a9a' fill-opacity='0.05' fill-rule='evenodd'/%3E%3C/svg%3E"),
+                url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ffcad4'%3E%3Cpath d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E");
+            background-attachment: fixed;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* 动态花瓣装饰 */
+        .petal {
+            position: absolute;
+            opacity: 0.7;
+            pointer-events: none;
+            z-index: 1;
+            animation: float 8s infinite ease-in-out;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.8; }
+            90% { opacity: 0.8; }
+            100% { transform: translateY(-50px) rotate(360deg); opacity: 0; }
+        }
+
+        /* 音乐播放器样式 - 固定在页面角落 */
+        .music-player {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 9998; /* 低于弹窗但高于背景 */
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(255, 138, 154, 0.2);
+            border: 1px solid #ffdee2;
+        }
+
+        /* 摩斯密码验证弹窗 - 不可退出 */
+        .verify-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 248, 250, 0.98);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            padding: 20px;
+            backdrop-filter: blur(8px);
+        }
+
+        .modal-card {
+            background: #fff;
+            border-radius: 24px;
+            padding: 50px 40px;
+            width: 100%;
+            max-width: 650px;
+            box-shadow: 0 15px 40px rgba(255, 138, 154, 0.2);
+            border: 1px solid #ffdee2;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* 弹窗装饰 */
+        .modal-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 8px;
+            background: linear-gradient(90deg, #ff8a9a, #ffb3c1, #ff8a9a);
+        }
+
+        .modal-title {
+            color: #d63384;
+            font-size: 28px;
+            margin-bottom: 15px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .modal-title::before, .modal-title::after {
+            content: "💐";
+            font-size: 24px;
+        }
+
+        .modal-desc {
+            color: #6c757d;
+            font-size: 17px;
+            line-height: 1.8;
+            margin-bottom: 35px;
+            padding: 0 10px;
+        }
+
+        .modal-desc span {
+            color: #d63384;
+            font-weight: 600;
+        }
+
+        .error-tip {
+            color: #dc3545;
+            font-size: 15px;
+            margin-bottom: 20px;
+            display: none;
+            animation: shake 0.6s ease;
+        }
+
+        .verify-input-box {
+            width: 100%;
+            padding: 20px;
+            border: 2px solid #ffdee2;
+            border-radius: 16px;
+            font-size: 19px;
+            margin-bottom: 25px;
+            resize: none;
+            min-height: 120px;
+            outline: none;
+            transition: all 0.3s;
+            font-family: "Courier New", monospace;
+            background: #fff5f7;
+        }
+
+        .verify-input-box:focus {
+            border-color: #d63384;
+            background: #fff;
+            box-shadow: 0 0 0 4px rgba(214, 51, 132, 0.08);
+        }
+
+        /* 摩斯按钮组 */
+        .morse-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+
+        .morse-btn {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 12px;
+            font-size: 17px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        .dot-btn {
+            background: #ff8a9a;
+            color: white;
+        }
+
+        .dash-btn {
+            background: #ffb3c1;
+            color: white;
+        }
+
+        .space-btn {
+            background: #ffe0e5;
+            color: #d63384;
+        }
+
+        .clear-btn {
+            background: #e8f4f8;
+            color: #20c997;
+        }
+
+        .morse-btn:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+        }
+
+        .submit-btn {
+            background: linear-gradient(90deg, #d63384, #e64980);
+            color: white;
+            padding: 18px 50px;
+            border-radius: 12px;
+            font-size: 20px;
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+            max-width: 300px;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(214, 51, 132, 0.3);
+            background: linear-gradient(90deg, #c52272, #d63384);
+        }
+
+        /* 翻页祝福容器 */
+        .blessing-container {
+            display: none; /* 验证通过前隐藏 */
+            width: 100%;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 60px 20px;
+            position: relative;
+            min-height: 100vh;
+            z-index: 10;
+        }
+
+        /* 单页样式 */
+        .blessing-page {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100%;
+            max-width: 900px;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.9s cubic-bezier(0.25, 0.8, 0.25, 1);
+            padding: 40px;
+            text-align: center;
+        }
+
+        .blessing-page.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* 页面内容样式 */
+        .page-header {
+            color: #d63384;
+            font-size: 42px;
+            margin-bottom: 40px;
+            font-weight: 700;
+            text-shadow: 1px 1px 3px rgba(255, 138, 154, 0.1);
+        }
+
+        .page-content {
+            color: #343a40;
+            font-size: 22px;
+            line-height: 2;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 45px 35px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(255, 138, 154, 0.1);
+            border: 1px solid #ffeff2;
+            margin-bottom: 50px;
+        }
+
+        .page-content p {
+            margin-bottom: 20px;
+        }
+
+        .page-content p:last-child {
+            margin-bottom: 0;
+        }
+
+        /* 翻页按钮组 */
+        .nav-group {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .nav-btn {
+            padding: 16px 36px;
+            border: none;
+            border-radius: 50px;
+            background: linear-gradient(90deg, #d63384, #e64980);
+            color: white;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-btn:disabled {
+            background: #ced4da;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .nav-btn:hover:not(:disabled) {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 20px rgba(214, 51, 132, 0.2);
+            background: linear-gradient(90deg, #c52272, #d63384);
+        }
+
+        /* 动画效果 */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-6px); }
+            75% { transform: translateX(6px); }
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 响应式适配 */
+        @media (max-width: 768px) {
+            .modal-card {
+                padding: 40px 25px;
+            }
+            
+            .modal-title {
+                font-size: 24px;
+            }
+            
+            .page-header {
+                font-size: 32px;
+            }
+            
+            .page-content {
+                font-size: 19px;
+                padding: 35px 25px;
+            }
+            
+            .nav-btn {
+                padding: 14px 28px;
+                font-size: 16px;
+            }
+            
+            /* 移动端调整音乐播放器位置 */
+            .music-player {
+                bottom: 15px;
+                right: 15px;
+                width: 280px !important;
+                height: 70px !important;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .morse-controls {
+                gap: 8px;
+            }
+            
+            .morse-btn {
+                padding: 12px 20px;
+                font-size: 15px;
+            }
+            
+            .page-header {
+                font-size: 28px;
+            }
+            
+            .page-content {
+                font-size: 17px;
+                line-height: 1.8;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 动态花瓣装饰 -->
+    <div id="petalContainer"></div>
+
+    <!-- 网易云音乐播放器 - 固定在右下角 -->
+    <div class="music-player">
+        <embed src="//music.163.com/style/swf/widget.swf?sid=29539350&type=2&auto=1&width=320&height=66" 
+               width="340" 
+               height="86"  
+               allowNetworking="all">
+    </div>
+
+    <!-- 摩斯密码验证弹窗 -->
+    <div class="verify-modal" id="verifyModal">
+        <div class="modal-card">
+            <h2 class="modal-title">专属暗号验证</h2>
+            <p class="modal-desc">在这个温柔的日子里，输入专属摩斯密码暗号<br>解锁对<span>妈妈/女神</span>的独家祝福<br>简易暗号：520（我爱你）</p>
+            <div class="error-tip" id="errorMsg">输入错误啦～请重新输入正确的摩斯密码 💔</div>
+            <textarea class="verify-input-box" id="verifyInput" placeholder="点击下方按钮输入摩斯密码，数字间用空格分隔..."></textarea>
+            <div class="morse-controls">
+                <button class="morse-btn dot-btn" id="dotBtn">· (点)</button>
+                <button class="morse-btn dash-btn" id="dashBtn">— (划)</button>
+                <button class="morse-btn space-btn" id="spaceBtn">空格 (分隔)</button>
+                <button class="morse-btn clear-btn" id="clearBtn">清空</button>
+            </div>
+            <button class="submit-btn" id="submitBtn">
+                解锁祝福 ✨
+            </button>
+        </div>
+    </div>
+
+    <!-- 翻页祝福容器 -->
+    <div class="blessing-container" id="blessingContainer">
+        <!-- 第1页：致最亲爱的她 -->
+        <div class="blessing-page active" data-page="1">
+            <h2 class="page-header">致最亲爱的你</h2>
+            <div class="page-content">
+                <p>三月春风，温柔了整个世界</p>
+                <p>妇女节悄然而至，愿时光偏爱，美好与你环环相扣</p>
+                <p>谢谢你，用柔软的肩膀扛起生活的琐碎</p>
+                <p>谢谢你，用温暖的爱意填满我的人生</p>
+            </div>
+            <div class="nav-group">
+                <button class="nav-btn" id="prevBtn1" disabled>
+                    ← 上一页
+                </button>
+                <button class="nav-btn" id="nextBtn1">
+                    下一页 →
+                </button>
+            </div>
+        </div>
+
+        <!-- 第2页：致伟大的妈妈 -->
+        <div class="blessing-page" data-page="2">
+            <h2 class="page-header">致伟大的妈妈</h2>
+            <div class="page-content">
+                <p>从呱呱坠地到长大成人，你从未缺席我的成长</p>
+                <p>你的唠叨是最温暖的牵挂，你的付出是最无私的爱</p>
+                <p>岁月在你眼角留下痕迹，却让你的爱愈发醇厚</p>
+                <p>愿我的超人妈妈，永远健康，永远快乐</p>
+            </div>
+            <div class="nav-group">
+                <button class="nav-btn" id="prevBtn2">
+                    ← 上一页
+                </button>
+                <button class="nav-btn" id="nextBtn2">
+                    下一页 →
+                </button>
+            </div>
+        </div>
+
+        <!-- 第3页：致闪闪发光的她 -->
+        <div class="blessing-page" data-page="3">
+            <h2 class="page-header">致闪闪发光的你</h2>
+            <div class="page-content">
+                <p>你可以是温柔的母亲，也可以是独立的自己</p>
+                <p>你可以是职场的先锋，也可以是生活的诗人</p>
+                <p>不必被定义，不必被束缚，你只管做最真实的自己</p>
+                <p>愿你永远热烈，永远闪耀，永远被爱包围</p>
+            </div>
+            <div class="nav-group">
+                <button class="nav-btn" id="prevBtn3">
+                    ← 上一页
+                </button>
+                <button class="nav-btn" id="nextBtn3">
+                    下一页 →
+                </button>
+            </div>
+        </div>
+
+        <!-- 第4页：最后的祝福 -->
+        <div class="blessing-page" data-page="4">
+            <h2 class="page-header">专属的温柔祝福</h2>
+            <div class="page-content">
+                <p>愿你眼里有星光，心中有山海，脚下有繁花</p>
+                <p>愿你被世界温柔以待，也能温柔对待世界</p>
+                <p>愿所有美好与温柔，都如约而至</p>
+                <p>三八妇女节快乐 ❤️ 永远爱你</p>
+            </div>
+            <div class="nav-group">
+                <button class="nav-btn" id="prevBtn4">
+                    ← 上一页
+                </button>
+                <button class="nav-btn" id="nextBtn4" disabled>
+                    下一页 →
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 等待DOM完全加载
+        document.addEventListener('DOMContentLoaded', function() {
+            // 1. 生成动态花瓣装饰
+            createPetals();
+            
+            // 2. 核心配置 - 简化版摩斯密码（520对应的摩斯密码）
+            // 5：····—  2：··———  0：—————
+            const SECRET_MORSE_CODE = "····— ··——— —————";
+            
+            // 3. DOM元素获取
+            // 弹窗元素
+            const verifyModal = document.getElementById('verifyModal');
+            const verifyInput = document.getElementById('verifyInput');
+            const errorMsg = document.getElementById('errorMsg');
+            const dotBtn = document.getElementById('dotBtn');
+            const dashBtn = document.getElementById('dashBtn');
+            const spaceBtn = document.getElementById('spaceBtn');
+            const clearBtn = document.getElementById('clearBtn');
+            const submitBtn = document.getElementById('submitBtn');
+            
+            // 翻页元素
+            const blessingContainer = document.getElementById('blessingContainer');
+            const pages = document.querySelectorAll('.blessing-page');
+            let currentPage = 1;
+            const totalPages = pages.length;
+
+            // 4. 音频上下文（兼容浏览器权限）
+            let audioContext = null;
+            function initAudioContext() {
+                if (!audioContext) {
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                }
+            }
+
+            // 播放摩斯密码音效（温柔的音调）
+            function playMorseSound(isShort = true) {
+                try {
+                    initAudioContext();
+                    const oscillator = audioContext.createOscillator();
+                    const gainNode = audioContext.createGain();
+                    
+                    oscillator.type = 'sine';
+                    oscillator.frequency.setValueAtTime(784, audioContext.currentTime); // G5 温柔音调
+                    gainNode.gain.setValueAtTime(0.12, audioContext.currentTime);
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+                    
+                    oscillator.start();
+                    // 短音180ms，长音540ms（更舒缓）
+                    oscillator.stop(audioContext.currentTime + (isShort ? 0.18 : 0.54));
+                } catch (e) {
+                    console.log('音效播放失败（不影响核心功能）:', e);
+                }
+            }
+
+            // 播放解锁成功音效
+            function playSuccessSound() {
+                try {
+                    initAudioContext();
+                    const oscillator1 = audioContext.createOscillator();
+                    const oscillator2 = audioContext.createOscillator();
+                    const gainNode = audioContext.createGain();
+                    
+                    gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+                    gainNode.gain.linearRampToValueAtTime(0.15, audioContext.currentTime + 0.1);
+                    gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + 1.5);
+                    
+                    // 欢快的音阶组合
+                    oscillator1.type = 'sine';
+                    oscillator1.frequency.setValueAtTime(523.25, audioContext.currentTime); // C5
+                    oscillator1.frequency.setValueAtTime(659.25, audioContext.currentTime + 0.3); // E5
+                    oscillator1.frequency.setValueAtTime(783.99, audioContext.currentTime + 0.6); // G5
+                    
+                    oscillator2.type = 'sine';
+                    oscillator2.frequency.setValueAtTime(1046.5, audioContext.currentTime + 0.8); // C6
+                    oscillator2.frequency.setValueAtTime(880, audioContext.currentTime + 1.1); // A5
+                    
+                    oscillator1.connect(gainNode);
+                    oscillator2.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+                    
+                    oscillator1.start();
+                    oscillator2.start(audioContext.currentTime + 0.8);
+                    oscillator1.stop(audioContext.currentTime + 1.5);
+                    oscillator2.stop(audioContext.currentTime + 1.5);
+                } catch (e) {
+                    console.log('成功音效播放失败:', e);
+                }
+            }
+
+            // 5. 弹窗交互逻辑
+            // 添加摩斯字符
+            function addMorseChar(char) {
+                verifyInput.value += char;
+                errorMsg.style.display = 'none';
+                // 播放对应音效
+                if (char === '·') playMorseSound(true);
+                else if (char === '—') playMorseSound(false);
+            }
+
+            // 清空输入框
+            function clearMorseInput() {
+                verifyInput.value = '';
+                errorMsg.style.display = 'none';
+            }
+
+            // 验证摩斯密码
+            function verifyMorseCode() {
+                const inputValue = verifyInput.value.trim();
+                if (inputValue === SECRET_MORSE_CODE) {
+                    // 验证通过：隐藏弹窗，显示祝福页面
+                    verifyModal.style.display = 'none';
+                    blessingContainer.style.display = 'block';
+                    playSuccessSound();
+                    
+                    // 给祝福页面添加入场动画
+                    document.querySelector(`.blessing-page[data-page="${currentPage}"]`).style.animation = 'fadeInUp 0.8s ease';
+                } else {
+                    // 验证失败：显示错误提示+震动
+                    errorMsg.style.display = 'block';
+                    verifyInput.style.animation = 'shake 0.6s ease';
+                    setTimeout(() => {
+                        verifyInput.style.animation = '';
+                    }, 600);
+                }
+            }
+
+            // 6. 翻页逻辑
+            function switchToPage(targetPage) {
+                // 隐藏当前页
+                document.querySelector(`.blessing-page[data-page="${currentPage}"]`).classList.remove('active');
+                // 显示目标页
+                const targetPageEl = document.querySelector(`.blessing-page[data-page="${targetPage}"]`);
+                targetPageEl.classList.add('active');
+                targetPageEl.style.animation = 'fadeInUp 0.8s ease';
+                // 更新当前页
+                currentPage = targetPage;
+                // 更新按钮状态
+                updateNavButtons();
+            }
+
+            // 更新翻页按钮状态
+            function updateNavButtons() {
+                // 重置所有按钮状态
+                document.querySelectorAll('.nav-btn').forEach(btn => {
+                    btn.disabled = false;
+                });
+                // 第一页禁用上一页
+                if (currentPage === 1) {
+                    document.getElementById(`prevBtn${currentPage}`).disabled = true;
+                }
+                // 最后一页禁用下一页
+                if (currentPage === totalPages) {
+                    document.getElementById(`nextBtn${currentPage}`).disabled = true;
+                }
+            }
+
+            // 7. 阻止弹窗退出（核心）
+            // 禁用ESC键关闭弹窗
+            document.addEventListener('keydown', function(e) {
+                if (verifyModal.style.display !== 'none') {
+                    if (e.key === 'Escape') {
+                        e.preventDefault(); // 阻止ESC关闭
+                        clearMorseInput(); // 仅清空输入，不退出
+                    }
+                }
+            });
+
+            // 阻止点击空白处关闭弹窗
+            verifyModal.addEventListener('click', function(e) {
+                if (e.target === verifyModal) {
+                    e.stopPropagation();
+                }
+            });
+
+            // 8. 事件绑定
+            // 弹窗按钮事件
+            dotBtn.addEventListener('click', () => addMorseChar('·'));
+            dashBtn.addEventListener('click', () => addMorseChar('—'));
+            spaceBtn.addEventListener('click', () => addMorseChar(' '));
+            clearBtn.addEventListener('click', clearMorseInput);
+            submitBtn.addEventListener('click', verifyMorseCode);
+
+            // 翻页按钮事件
+            document.getElementById('nextBtn1').addEventListener('click', () => switchToPage(2));
+            document.getElementById('nextBtn2').addEventListener('click', () => switchToPage(3));
+            document.getElementById('nextBtn3').addEventListener('click', () => switchToPage(4));
+
+            document.getElementById('prevBtn2').addEventListener('click', () => switchToPage(1));
+            document.getElementById('prevBtn3').addEventListener('click', () => switchToPage(2));
+            document.getElementById('prevBtn4').addEventListener('click', () => switchToPage(3));
+
+            // 键盘快捷操作（弹窗内）
+            document.addEventListener('keydown', function(e) {
+                if (verifyModal.style.display !== 'none') {
+                    switch(e.key) {
+                        case '.': // 点
+                            addMorseChar('·');
+                            e.preventDefault();
+                            break;
+                        case '-': // 划
+                            addMorseChar('—');
+                            e.preventDefault();
+                            break;
+                        case ' ': // 空格
+                            addMorseChar(' ');
+                            e.preventDefault();
+                            break;
+                        case 'Enter': // 提交验证
+                            verifyMorseCode();
+                            e.preventDefault();
+                            break;
+                    }
+                }
+            });
+
+            // 初始化按钮状态
+            updateNavButtons();
+        });
+
+        // 生成动态花瓣装饰
+        function createPetals() {
+            const container = document.getElementById('petalContainer');
+            const petalCount = 20; // 花瓣数量
+            const petalShapes = ['🌸', '🌹', '🌷', '💐']; // 花瓣样式
+
+            for (let i = 0; i < petalCount; i++) {
+                const petal = document.createElement('div');
+                petal.className = 'petal';
+                petal.textContent = petalShapes[Math.floor(Math.random() * petalShapes.length)];
+                
+                // 随机样式
+                petal.style.fontSize = `${Math.random() * 20 + 10}px`;
+                petal.style.left = `${Math.random() * 100}%`;
+                petal.style.animationDelay = `${Math.random() * 20}s`;
+                petal.style.animationDuration = `${Math.random() * 10 + 15}s`;
+                
+                container.appendChild(petal);
+            }
+        }
+    </script>
+</body>
+</html>
